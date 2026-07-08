@@ -1,0 +1,45 @@
+{
+  "name": "marketmind-backend",
+  "version": "1.0.0",
+  "description": "Enterprise-Level Stock & Crypto Analytics Platform Backend",
+  "main": "dist/interfaces/http/server.js",
+  "scripts": {
+    "dev": "nodemon --watch src -e ts --exec ts-node src/interfaces/http/server.ts",
+    "build": "tsc",
+    "start": "node dist/interfaces/http/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "test": "jest",
+    "lint": "eslint 'src/**/*.ts'"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.12.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pino": "^8.20.0",
+    "pino-pretty": "^11.0.0",
+    "redis": "^4.6.13",
+    "socket.io": "^4.7.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/node": "^20.12.7",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "prisma": "^5.12.1",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

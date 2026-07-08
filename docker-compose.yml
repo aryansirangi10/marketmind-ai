@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # ------------------------------------------------------------------------------
+  # Database Service (PostgreSQL)
+  # ------------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: marketmind-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: marketmind
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d marketmind"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - marketmind-network
+
+  # ------------------------------------------------------------------------------
+  # Caching & Queue Service (Redis)
+  # ------------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: marketmind-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - marketmind-network
+
+  # ------------------------------------------------------------------------------
+  # Backend API Gateway Service
+  # ------------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marketmind-backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/marketmind?schema=public
+      - REDIS_URL=redis://redis:6379
+      - ML_SERVICE_URL=http://ml-service:8000
+    ports:
+      - "5001:5001"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - marketmind-network
+
+  # ------------------------------------------------------------------------------
+  # Python Machine Learning Service
+  # ------------------------------------------------------------------------------
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: marketmind-ml-service
+    restart: always
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/marketmind?schema=public
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8010:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - marketmind-network
+
+  # ------------------------------------------------------------------------------
+  # Frontend Application (Next.js)
+  # ------------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: marketmind-frontend
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:5001/api/v1
+      - NEXT_PUBLIC_WS_URL=http://backend:5001
+    depends_on:
+      - backend
+    networks:
+      - marketmind-network
+
+volumes:
+  pgdata:
+    driver: local
+  redisdata:
+    driver: local
+
+networks:
+  marketmind-network:
+    driver: bridge

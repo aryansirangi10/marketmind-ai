@@ -1,0 +1,253 @@
+// ==============================================================================
+// Prisma Schema for MarketMind AI
+// ==============================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------------------------------------
+// Enums
+// ------------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum PortfolioType {
+  PAPER
+  LIVE
+}
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+}
+
+enum AssetType {
+  STOCK
+  CRYPTO
+}
+
+enum AlertCondition {
+  ABOVE
+  BELOW
+}
+
+enum PredictionType {
+  PRICE_FORECAST
+  TREND
+}
+
+// ------------------------------------------------------------------------------
+// Models
+// ------------------------------------------------------------------------------
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  avatarUrl    String?
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relations
+  sessions     UserSession[]
+  portfolios   Portfolio[]
+  watchlists   Watchlist[]
+  alerts       Alert[]
+  orders       Order[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  refreshTokenHash String   @map("refresh_token_hash")
+  deviceInfo       String?  @map("device_info")
+  ipAddress        String?  @map("ip_address")
+  expiresAt        DateTime @map("expires_at")
+  createdAt        DateTime @default(now())
+  
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model Portfolio {
+  id          String             @id @default(uuid())
+  userId      String             @map("user_id")
+  name        String
+  description String?
+  type        PortfolioType      @default(PAPER)
+  balance     Float              @default(100000.0) // Starting cash balance
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  // Relations
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  history      PortfolioHistory[]
+
+  @@map("portfolios")
+}
+
+model Asset {
+  id            String          @id @default(uuid())
+  symbol        String          @unique
+  name          String
+  type          AssetType
+  exchange      String?
+  isActive      Boolean         @default(true) @map("is_active")
+  createdAt     DateTime        @default(now())
+  
+  // Relations
+  transactions  Transaction[]
+  orders        Order[]
+  watchlistItems WatchlistItem[]
+  alerts        Alert[]
+  predictions   Prediction[]
+
+  @@map("assets")
+}
+
+model Transaction {
+  id              String          @id @default(uuid())
+  portfolioId     String          @map("portfolio_id")
+  assetId         String          @map("asset_id")
+  type            TransactionType
+  quantity        Float
+  pricePerUnit    Float           @map("price_per_unit")
+  fee             Float           @default(0.0)
+  transactionDate DateTime        @default(now()) @map("transaction_date")
+  
+  // Relations
+  portfolio       Portfolio       @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset           Asset           @relation(fields: [assetId], references: [id])
+
+  @@map("transactions")
+}
+
+model PortfolioHistory {
+  id          String    @id @default(uuid())
+  portfolioId String    @map("portfolio_id")
+  timestamp   DateTime  @default(now())
+  totalValue  Float     @map("total_value") // Cash balance + Asset holdings value
+  cashBalance Float     @map("cash_balance")
+  
+  // Relations
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@map("portfolio_history")
+}
+
+model Watchlist {
+  id        String          @id @default(uuid())
+  userId    String          @map("user_id")
+  name      String
+  createdAt DateTime        @default(now())
+  
+  // Relations
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WatchlistItem[]
+
+  @@map("watchlists")
+}
+
+model WatchlistItem {
+  watchlistId String   @map("watchlist_id")
+  assetId     String   @map("asset_id")
+  addedAt     DateTime @default(now()) @map("added_at")
+  
+  // Relations
+  watchlist   Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  asset       Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([watchlistId, assetId])
+  @@map("watchlist_items")
+}
+
+model Alert {
+  id           String         @id @default(uuid())
+  userId       String         @map("user_id")
+  assetId      String         @map("asset_id")
+  triggerPrice Float          @map("trigger_price")
+  condition    AlertCondition
+  isTriggered  Boolean        @default(false) @map("is_triggered")
+  createdAt    DateTime       @default(now())
+  triggeredAt  DateTime?      @map("triggered_at")
+  
+  // Relations
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset        Asset          @relation(fields: [assetId], references: [id])
+
+  @@map("alerts")
+}
+
+model Order {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  assetId   String      @map("asset_id")
+  type      TransactionType
+  orderType OrderType   @map("order_type")
+  status    OrderStatus @default(PENDING)
+  quantity  Float
+  price     Float
+  createdAt DateTime    @default(now())
+  
+  // Relations
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset     Asset       @relation(fields: [assetId], references: [id])
+
+  @@map("orders")
+}
+
+model Prediction {
+  id              String         @id @default(uuid())
+  assetId         String         @map("asset_id")
+  predictionType  PredictionType @map("prediction_type")
+  predictedValue  Float          @map("predicted_value")
+  confidenceScore Float          @map("confidence_score")
+  timestamp       DateTime       @default(now())
+  
+  // Relations
+  asset           Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("predictions")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  ipAddress String?  @map("ip_address")
+  timestamp DateTime @default(now())
+  
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
