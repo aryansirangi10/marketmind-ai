@@ -361,7 +361,7 @@ export default function DashboardPage() {
               .map((w) => renderWidget(w.id))}
           </div>
         </div>
-      </aside>
+      </LayoutShell>
 
       {/* --------------------------------------------------------------------------
          Search Everywhere Modal (Command Palette)

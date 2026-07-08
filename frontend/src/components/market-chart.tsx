@@ -184,7 +184,7 @@ export default function MarketChart({ symbol, data, isLoading }: MarketChartProp
                 <span className="text-teal-400 text-right">${dataPoint.ema.toFixed(2)}</span>
               </>
             )}
-            {showBB && dataPoint.bbUpper && (
+            {showBB && dataPoint.bbUpper !== undefined && dataPoint.bbLower !== undefined && (
               <>
                 <span className="text-purple-400">BB Upper:</span>
                 <span className="text-purple-400 text-right">${dataPoint.bbUpper.toFixed(2)}</span>
