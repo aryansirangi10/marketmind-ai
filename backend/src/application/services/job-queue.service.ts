@@ -3,7 +3,7 @@
 // ==============================================================================
 
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { providerRegistry } from "../../infrastructure/config/provider-registry";
+import { ProviderRegistry } from "../../infrastructure/config/provider-registry";
 import { logger } from "../../infrastructure/logging/logger";
 import { AlertCondition } from "@prisma/client";
 
@@ -107,11 +107,13 @@ class JobQueueService {
   private async getCurrentPrice(symbol: string, type: string): Promise<number | null> {
     try {
       if (type === "STOCK") {
-        const quote = await providerRegistry.stockProvider.getQuote(symbol);
-        return quote.price;
+        const stockProvider = ProviderRegistry.getStockProvider();
+        const quote = await stockProvider.getQuote(symbol);
+        return quote.currentPrice;
       } else {
-        const price = await providerRegistry.cryptoProvider.getPrice(symbol);
-        return price;
+        const cryptoProvider = ProviderRegistry.getCryptoProvider();
+        const quote = await cryptoProvider.getQuote(symbol);
+        return quote.price;
       }
     } catch {
       return null;
