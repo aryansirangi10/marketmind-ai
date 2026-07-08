@@ -8,6 +8,13 @@ from typing import List, Dict
 from app.services.forecast import predict_prices
 from app.services.sentiment import analyze_headlines
 from app.services.optimizer import optimize_portfolio
+from app.services.indicators import (
+    calculate_sma,
+    calculate_ema,
+    calculate_rsi,
+    calculate_bollinger_bands,
+    calculate_macd
+)
 from app.config import settings
 
 app = FastAPI(
@@ -28,6 +35,9 @@ class SentimentRequest(BaseModel):
 class OptimizeRequest(BaseModel):
     assets: Dict[str, List[float]] = Field(..., description="Symbol maps referencing historic price series")
     risk_free_rate: float = Field(0.02, description="Yield benchmark for cash positions")
+
+class IndicatorsRequest(BaseModel):
+    prices: List[float] = Field(..., description="Chronological sequence of closing price valuations")
 
 # ------------------------------------------------------------------------------
 # Route Controllers
@@ -81,3 +91,30 @@ def optimize_route(request: OptimizeRequest):
         return {"success": True, "data": allocations}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Portfolio optimizer engine error: {str(e)}")
+
+@app.post("/indicators")
+def indicators_route(request: IndicatorsRequest):
+    """
+    Computes standard mathematical technical indicators (SMA, EMA, RSI, BB, MACD)
+    """
+    if len(request.prices) == 0:
+        raise HTTPException(status_code=400, detail="Historical prices list cannot be empty.")
+    try:
+        sma_20 = calculate_sma(request.prices, 20)
+        ema_20 = calculate_ema(request.prices, 20)
+        rsi_14 = calculate_rsi(request.prices, 14)
+        bb_20 = calculate_bollinger_bands(request.prices, 20)
+        macd = calculate_macd(request.prices)
+        
+        return {
+            "success": True,
+            "indicators": {
+                "sma_20": sma_20,
+                "ema_20": ema_20,
+                "rsi_14": rsi_14,
+                "bollinger_bands_20": bb_20,
+                "macd": macd
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Technical indicators engine error: {str(e)}")

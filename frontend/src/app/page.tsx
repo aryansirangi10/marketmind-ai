@@ -1,5 +1,5 @@
 // ==============================================================================
-// Dashboard Page Component (Next.js App Root Page)
+// Premium Dashboard Page (Customizable Grid Layout & Shimmer skeletons)
 // ==============================================================================
 
 "use client";
@@ -10,17 +10,20 @@ import LayoutShell from "@/components/layout-shell";
 import TickerTape from "@/components/ticker-tape";
 import MarketChart from "@/components/market-chart";
 import WatchlistPanel from "@/components/watchlist-panel";
+import EconomicCalendar from "@/components/economic-calendar";
+import MarketHeatmap from "@/components/market-heatmap";
+import TopMovers from "@/components/top-movers";
 import { 
-  TrendingUp, 
-  TrendingDown, 
   Search, 
   Globe, 
-  BarChart3, 
   Activity, 
-  DollarSign 
+  Sliders,
+  Eye,
+  EyeOff,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 
-// API endpoints fallback url
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
 
 interface QuoteResponse {
@@ -33,6 +36,12 @@ interface QuoteResponse {
   timestamp: number;
 }
 
+interface WidgetConfig {
+  id: string;
+  name: string;
+  visible: boolean;
+}
+
 export default function DashboardPage() {
   const [activeAsset, setActiveAsset] = useState<{ symbol: string; type: "STOCK" | "CRYPTO" }>({
     symbol: "AAPL",
@@ -42,6 +51,51 @@ export default function DashboardPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Array<{ symbol: string; name: string; type: "STOCK" | "CRYPTO" }>>([]);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+
+  // Widget Layout Configuration (with persistence)
+  const [widgets, setWidgets] = useState<WidgetConfig[]>([
+    { id: "chart", name: "Price Technical Chart", visible: true },
+    { id: "watchlist", name: "Watchlist & Command Desk", visible: true },
+    { id: "movers", name: "Top Gainers & Losers", visible: true },
+    { id: "heatmap", name: "Market Sector Heatmap", visible: true },
+    { id: "calendar", name: "Economic Event Calendar", visible: true }
+  ]);
+
+  // Load persistent dashboard layouts from localStorage
+  useEffect(() => {
+    const savedLayout = localStorage.getItem("marketmind_dashboard_layout");
+    if (savedLayout) {
+      try {
+        setWidgets(JSON.parse(savedLayout));
+      } catch {
+        // Fallback to default
+      }
+    }
+  }, []);
+
+  const saveLayout = (newWidgets: WidgetConfig[]) => {
+    setWidgets(newWidgets);
+    localStorage.setItem("marketmind_dashboard_layout", JSON.stringify(newWidgets));
+  };
+
+  const toggleWidgetVisibility = (id: string) => {
+    const updated = widgets.map((w) => w.id === id ? { ...w, visible: !w.visible } : w);
+    saveLayout(updated);
+  };
+
+  const moveWidget = (index: number, direction: "up" | "down") => {
+    const newWidgets = [...widgets];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    
+    if (targetIndex >= 0 && targetIndex < newWidgets.length) {
+      // Swap widgets
+      const temp = newWidgets[index];
+      newWidgets[index] = newWidgets[targetIndex];
+      newWidgets[targetIndex] = temp;
+      saveLayout(newWidgets);
+    }
+  };
 
   // Fetch real-time quotes using TanStack Query
   const { data: quote, isLoading: isQuoteLoading } = useQuery<QuoteResponse>({
@@ -56,7 +110,7 @@ export default function DashboardPage() {
       const json = await res.json();
       return json.data;
     },
-    refetchInterval: 10000 // Poll every 10 seconds
+    refetchInterval: 10000
   });
 
   // Fetch chart candle details
@@ -121,12 +175,114 @@ export default function DashboardPage() {
 
   const isPositive = quote ? quote.percentChange >= 0 : true;
 
+  // Render a specific widget based on its ID
+  const renderWidget = (id: string) => {
+    switch (id) {
+      case "chart":
+        return (
+          <div key="chart" className="lg:col-span-2 min-h-[432px]">
+            <MarketChart 
+              symbol={activeAsset.symbol} 
+              data={candles || []} 
+              isLoading={isCandlesLoading} 
+            />
+          </div>
+        );
+      case "watchlist":
+        return (
+          <div key="watchlist" className="h-[432px]">
+            <WatchlistPanel 
+              onSelectAsset={handleAssetSelect} 
+              activeSymbol={activeAsset.symbol} 
+            />
+          </div>
+        );
+      case "movers":
+        return (
+          <div key="movers" className="h-[320px]">
+            <TopMovers />
+          </div>
+        );
+      case "heatmap":
+        return (
+          <div key="heatmap" className="h-[320px]">
+            <MarketHeatmap />
+          </div>
+        );
+      case "calendar":
+        return (
+          <div key="calendar" className="h-[320px]">
+            <EconomicCalendar />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TickerTape />
 
       <LayoutShell onSearchClick={() => setIsSearchOpen(true)}>
         <div className="max-w-7xl mx-auto space-y-6">
+          {/* Dashboard Header & Customizer Button */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white tracking-wide">Market Board</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Real-time analytical viewports and custom workspace</p>
+            </div>
+            
+            <button 
+              onClick={() => setIsCustomizeOpen(!isCustomizeOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-border text-xs text-muted-foreground hover:text-white hover:border-white/15 transition-all cursor-pointer"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Customize Layout</span>
+            </button>
+          </div>
+
+          {/* Customize Panel Drawer */}
+          {isCustomizeOpen && (
+            <div className="p-4 rounded-2xl bg-slate-900/50 border border-border/80 space-y-3.5">
+              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">Arrange Dashboard Panels</span>
+              <div className="flex flex-wrap gap-3">
+                {widgets.map((widget, idx) => (
+                  <div 
+                    key={widget.id} 
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-950 border border-border text-xs text-white"
+                  >
+                    <button 
+                      onClick={() => toggleWidgetVisibility(widget.id)}
+                      className="text-muted-foreground hover:text-indigo-400 cursor-pointer"
+                    >
+                      {widget.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4 text-red-400" />}
+                    </button>
+                    <span className={`font-medium ${!widget.visible && "line-through text-muted-foreground"}`}>
+                      {widget.name}
+                    </span>
+                    <div className="flex items-center gap-1 ml-2 border-l border-border/50 pl-2">
+                      <button 
+                        disabled={idx === 0} 
+                        onClick={() => moveWidget(idx, "up")}
+                        className="text-muted-foreground hover:text-white disabled:opacity-30 cursor-pointer"
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </button>
+                      <button 
+                        disabled={idx === widgets.length - 1} 
+                        onClick={() => moveWidget(idx, "down")}
+                        className="text-muted-foreground hover:text-white disabled:opacity-30 cursor-pointer"
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Top Panel: Asset Details Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Real-time price widget */}
@@ -198,37 +354,25 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Main Grid: Left chart, Right watchlist */}
+          {/* Active Grid Panels */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="lg:col-span-2">
-              <MarketChart 
-                symbol={activeAsset.symbol} 
-                data={candles || []} 
-                isLoading={isCandlesLoading} 
-              />
-            </div>
-            <div className="h-[432px]">
-              <WatchlistPanel 
-                onSelectAsset={handleAssetSelect} 
-                activeSymbol={activeAsset.symbol} 
-              />
-            </div>
+            {widgets
+              .filter((w) => w.visible)
+              .map((w) => renderWidget(w.id))}
           </div>
         </div>
-      </LayoutShell>
+      </aside>
 
       {/* --------------------------------------------------------------------------
          Search Everywhere Modal (Command Palette)
          -------------------------------------------------------------------------- */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4">
-          {/* Backdrop Blur */}
           <div 
             className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity duration-300"
             onClick={() => setIsSearchOpen(false)}
           />
 
-          {/* Search Box */}
           <div className="relative w-full max-w-lg glass-card border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[350px]">
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
               <Search className="w-5 h-5 text-indigo-400 shrink-0" />
@@ -248,7 +392,6 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Results list */}
             <div className="flex-1 overflow-y-auto p-2">
               {searchResults.length > 0 ? (
                 <div className="space-y-0.5">

@@ -10,14 +10,22 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import router from "./router";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { logger } from "../../infrastructure/logging/logger";
+import { loggingMiddleware } from "./middleware/logging.middleware";
+import { rateLimiter } from "./middleware/rate-limiter.middleware";
+import { errorHandler } from "./middleware/error-handler.middleware";
+import { jobQueueService } from "../../application/services/job-queue.service";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Middlewares
+// Global Security & Request Logging
 app.use(helmet());
+app.use(loggingMiddleware);
+app.use(rateLimiter({ windowMs: 60 * 1000, limit: 120 })); // 120 requests/min limit
+
 app.use(cors({
   origin: "*", // Adjust in production to match frontend URL
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -29,13 +37,7 @@ app.use(express.json());
 app.use("/api/v1", router);
 
 // Error Handling Middleware
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error("[ServerError]", err);
-  res.status(500).json({
-    success: false,
-    error: err.message || "Internal Server Error"
-  });
-});
+app.use(errorHandler);
 
 // Create HTTP Server and Socket.IO Server
 const httpServer = createServer(app);
@@ -48,10 +50,10 @@ const io = new Server(httpServer, {
 
 // Socket.IO Connection Handler
 io.on("connection", (socket) => {
-  console.log(`[Socket.IO] Client connected: ${socket.id}`);
+  logger.info(`[Socket.IO] Client connected: ${socket.id}`);
   
   socket.on("disconnect", () => {
-    console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
+    logger.info(`[Socket.IO] Client disconnected: ${socket.id}`);
   });
 });
 
@@ -73,25 +75,30 @@ async function startServer() {
   // Connect to database
   await PrismaService.connect();
 
+  // Start background cron jobs / sweeps
+  jobQueueService.startBackgroundWorker();
+
   httpServer.listen(PORT, () => {
-    console.log(`[ExpressServer] Server listening on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+    logger.info(`[ExpressServer] Server listening on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
   });
 }
 
 // Graceful shutdown hooks
 process.on("SIGINT", async () => {
-  console.log("[ExpressServer] SIGINT received. Shutting down gracefully...");
+  logger.info("[ExpressServer] SIGINT received. Shutting down gracefully...");
+  jobQueueService.stopBackgroundWorker();
   await PrismaService.disconnect();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  console.log("[ExpressServer] SIGTERM received. Shutting down gracefully...");
+  logger.info("[ExpressServer] SIGTERM received. Shutting down gracefully...");
+  jobQueueService.stopBackgroundWorker();
   await PrismaService.disconnect();
   process.exit(0);
 });
 
 startServer().catch(err => {
-  console.error("[ExpressServer] Failed to start:", err);
+  logger.error("[ExpressServer] Failed to start:", err);
   process.exit(1);
 });

@@ -78,6 +78,7 @@ model User {
   alerts       Alert[]
   orders       Order[]
   auditLogs    AuditLog[]
+  backtestRuns BacktestRun[]
 
   @@map("users")
 }
@@ -98,19 +99,22 @@ model UserSession {
 }
 
 model Portfolio {
-  id          String             @id @default(uuid())
-  userId      String             @map("user_id")
-  name        String
-  description String?
-  type        PortfolioType      @default(PAPER)
-  balance     Float              @default(100000.0) // Starting cash balance
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id             String             @id @default(uuid())
+  userId         String             @map("user_id")
+  name           String
+  description    String?
+  type           PortfolioType      @default(PAPER)
+  balance        Float              @default(100000.0) // Starting cash balance
+  goalAmount     Float?             @map("goal_amount") // Investment goal
+  goalTargetDate DateTime?          @map("goal_target_date") // Goal target date
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
   
   // Relations
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   history      PortfolioHistory[]
+  dividends    Dividend[]
 
   @@map("portfolios")
 }
@@ -130,6 +134,7 @@ model Asset {
   watchlistItems WatchlistItem[]
   alerts        Alert[]
   predictions   Prediction[]
+  dividends     Dividend[]
 
   @@map("assets")
 }
@@ -250,4 +255,49 @@ model AuditLog {
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model Dividend {
+  id           String    @id @default(uuid())
+  portfolioId  String    @map("portfolio_id")
+  assetId      String    @map("asset_id")
+  amount       Float
+  exDate       DateTime  @map("ex_date")
+  paymentDate  DateTime  @map("payment_date")
+  
+  // Relations
+  portfolio    Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  asset        Asset     @relation(fields: [assetId], references: [id])
+
+  @@map("dividends")
+}
+
+model BacktestRun {
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
+  strategyName String    @map("strategy_name")
+  assetSymbol  String    @map("asset_symbol")
+  startBalance Float     @map("start_balance")
+  endBalance   Float     @map("end_balance")
+  cagr         Float
+  sharpeRatio  Float     @map("sharpe_ratio")
+  maxDrawdown  Float     @map("max_drawdown")
+  tradesCount  Int       @map("trades_count")
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("backtest_runs")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("feature_flags")
 }
