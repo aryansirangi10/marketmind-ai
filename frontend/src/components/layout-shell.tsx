@@ -24,7 +24,8 @@ import {
   BrainCircuit,
   Sliders,
   BookOpen,
-  Users
+  Users,
+  Newspaper
 } from "lucide-react";
 
 interface LayoutShellProps {
@@ -42,6 +43,7 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Portfolio", href: "/portfolio", icon: Wallet },
     { name: "Screener", href: "/screener", icon: TrendingUp },
+    { name: "Market News", href: "/news", icon: Newspaper },
     { name: "AI Research", href: "/research", icon: BrainCircuit },
     { name: "Strategy Builder", href: "/strategy", icon: Sliders },
     { name: "Learning Center", href: "/learning", icon: BookOpen },
