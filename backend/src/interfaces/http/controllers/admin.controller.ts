@@ -76,4 +76,42 @@ export class AdminController {
       res.status(500).json({ success: false, error: err.message });
     }
   };
+
+  /**
+   * POST /api/v1/admin/flags/toggle
+   */
+  public toggleFeatureFlag = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { key, enabled } = req.body;
+      const flag = await this.db.featureFlag.upsert({
+        where: { key },
+        update: { value: enabled },
+        create: { key, value: enabled, description: "Runtime toggled flag." }
+      });
+      res.status(200).json({ success: true, data: flag });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  };
+
+  /**
+   * POST /api/v1/admin/broadcast
+   */
+  public broadcastAlert = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { message } = req.body;
+      const userId = req.user?.userId || "system-admin-id";
+      // Log broadcast to AuditLogs
+      await this.db.auditLog.create({
+        data: {
+          userId,
+          action: `SYSTEM_BROADCAST: ${message}`,
+          ipAddress: req.ip || "127.0.0.1"
+        }
+      });
+      res.status(200).json({ success: true, message: `Broadcast alert registered: "${message}"` });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  };
 }

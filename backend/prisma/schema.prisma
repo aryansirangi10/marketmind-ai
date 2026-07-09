@@ -111,6 +111,7 @@ model Portfolio {
   description    String?
   type           PortfolioType      @default(PAPER)
   balance        Float              @default(100000.0) // Starting cash balance
+  currency       String             @default("USD")    // Currency tag (USD, INR, EUR, GBP)
   goalAmount     Float?             @map("goal_amount") // Investment goal
   goalTargetDate DateTime?          @map("goal_target_date") // Goal target date
   createdAt      DateTime           @default(now())

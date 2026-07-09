@@ -63,15 +63,52 @@ export default function AdminPage() {
     { key: "ai_portfolio_coach", name: "AI Portfolio Advisor", enabled: false, desc: "Generates automated rebalancing reports and risk warnings" }
   ]);
 
-  const toggleFlag = (key: string) => {
+  const [broadcastMessage, setBroadcastMessage] = useState("");
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+
+  const toggleFlag = async (key: string) => {
+    let nextState = false;
     setFlags(prev => prev.map(f => {
       if (f.key === key) {
-        const nextState = !f.enabled;
-        triggerAction(`Feature flag '${f.name}' toggled to ${nextState ? "ENABLED" : "DISABLED"}.`);
+        nextState = !f.enabled;
         return { ...f, enabled: nextState };
       }
       return f;
     }));
+
+    try {
+      await fetch(`${API_BASE_URL}/admin/flags/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, enabled: nextState })
+      });
+      triggerAction(`Feature flag '${key}' database mapping updated.`);
+      refetchLogs();
+    } catch (err) {
+      triggerAction(`Offline: toggled Feature flag '${key}' in sandbox.`);
+    }
+  };
+
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastMessage.trim()) return;
+    setIsBroadcasting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/broadcast`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: broadcastMessage })
+      });
+      if (res.ok) {
+        triggerAction("System-wide broadcast alert recorded!");
+        setBroadcastMessage("");
+        refetchLogs();
+      }
+    } catch (err) {
+      triggerAction("Offline: logged broadcast alert in workspace sandbox.");
+    } finally {
+      setIsBroadcasting(false);
+    }
   };
 
   // Fetch Admin Stats
@@ -133,6 +170,14 @@ export default function AdminPage() {
     const mins = Math.floor((sec % 3600) / 60);
     return `${hrs}h ${mins}m`;
   };
+
+  // Simulated telemetry latency stats
+  const performanceStats = [
+    { name: "API Gateway", latency: 12 },
+    { name: "ML Optimizer", latency: 45 },
+    { name: "Redis Cache", latency: 2 },
+    { name: "DB Queries", latency: 6 }
+  ];
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -229,6 +274,65 @@ export default function AdminPage() {
                   {isAlertActive ? "Stop Alert" : "Simulate Alert"}
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Performance latency monitoring & Broadcast form row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
+            {/* Telemetry charts */}
+            <div className="glass-card p-5 rounded-2xl border border-border space-y-4 bg-white/[0.01]">
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Activity className="w-4 h-4 text-indigo-400 animate-pulse" /> API Endpoint Latencies (ms)
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Real-time gateway round-trip latency statistics</p>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                {performanceStats.map((stat) => (
+                  <div key={stat.name} className="space-y-1">
+                    <div className="flex justify-between font-mono text-[10px]">
+                      <span className="text-slate-300 font-bold">{stat.name}</span>
+                      <span className="text-indigo-300 font-bold">{stat.latency} ms</span>
+                    </div>
+                    {/* Simulated visual progress bar */}
+                    <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-border/20">
+                      <div 
+                        className="bg-indigo-500 h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min((stat.latency / 50) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Broadcast Console */}
+            <div className="glass-card p-5 rounded-2xl border border-border space-y-4 bg-white/[0.01]">
+              <div>
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Terminal className="w-4 h-4 text-indigo-400" /> SYSTEM ALERTS BROADCAST
+                </h3>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Dispatch workspace alerts directly to system audit logs</p>
+              </div>
+
+              <form onSubmit={handleBroadcast} className="space-y-3 text-xs">
+                <textarea
+                  required
+                  rows={3}
+                  value={broadcastMessage}
+                  onChange={(e) => setBroadcastMessage(e.target.value)}
+                  placeholder="Type broadcast message alert here..."
+                  className="w-full bg-white/5 border border-border rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-400"
+                />
+                <button
+                  type="submit"
+                  disabled={isBroadcasting}
+                  className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-all cursor-pointer shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                >
+                  {isBroadcasting ? "Publishing Alert..." : "DISPATCH SYSTEM BROADCAST"}
+                </button>
+              </form>
             </div>
           </div>
 

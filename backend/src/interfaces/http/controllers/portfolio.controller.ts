@@ -137,24 +137,7 @@ export class PortfolioController {
    */
   public listFallback = async (_req: Request, res: Response): Promise<void> => {
     try {
-      // Find the first demo portfolio in DB
-      const portfolio = await this.db.portfolio.findFirst();
-      if (!portfolio) {
-        res.status(404).json({ success: false, error: "No portfolio found in database. Run create-fallback first." });
-        return;
-      }
-      res.status(200).json({ success: true, data: [portfolio] });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  };
-
-  /**
-   * POST /api/v1/portfolios/create-fallback
-   */
-  public createFallback = async (_req: Request, res: Response): Promise<void> => {
-    try {
-      // Find or create seed user
+      // Find or create default demo user
       let user = await this.db.user.findUnique({
         where: { email: "demo@marketmind.ai" }
       });
@@ -170,23 +153,76 @@ export class PortfolioController {
         });
       }
 
-      // Check if default portfolio exists
-      let portfolio = await this.db.portfolio.findFirst({
+      // Fetch all portfolios owned by this user
+      let portfolios = await this.db.portfolio.findMany({
         where: { userId: user.id }
       });
-      if (!portfolio) {
-        portfolio = await this.db.portfolio.create({
+
+      if (portfolios.length === 0) {
+        // Auto-provision default USD portfolio
+        const defaultUSD = await this.db.portfolio.create({
           data: {
             userId: user.id,
-            name: "Demo Paper Portfolio",
-            description: "Default paper portfolio for local development testing.",
+            name: "US Dollar Paper Portfolio",
+            description: "Paper trading portfolio denominated in USD.",
             type: "PAPER",
-            balance: 100000.0
+            balance: 50000.0,
+            currency: "USD"
+          }
+        });
+        // Auto-provision default INR portfolio
+        const defaultINR = await this.db.portfolio.create({
+          data: {
+            userId: user.id,
+            name: "Indian Rupee Portfolio",
+            description: "Paper trading portfolio denominated in INR.",
+            type: "PAPER",
+            balance: 1000000.0,
+            currency: "INR"
+          }
+        });
+        portfolios = [defaultUSD, defaultINR];
+      }
+
+      res.status(200).json({ success: true, data: portfolios });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  };
+
+  /**
+   * POST /api/v1/portfolios/create-custom
+   */
+  public createCustom = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { name, currency, balance } = req.body;
+      let user = await this.db.user.findUnique({
+        where: { email: "demo@marketmind.ai" }
+      });
+      if (!user) {
+        user = await this.db.user.create({
+          data: {
+            email: "demo@marketmind.ai",
+            passwordHash: "demo_password_hash",
+            firstName: "Demo",
+            lastName: "Account",
+            role: "USER"
           }
         });
       }
 
-      res.status(200).json({ success: true, data: portfolio });
+      const portfolio = await this.db.portfolio.create({
+        data: {
+          userId: user.id,
+          name: name || "New Custom Portfolio",
+          description: `Custom paper trading portfolio in ${currency || "USD"}.`,
+          type: "PAPER",
+          balance: balance ? parseFloat(balance) : 50000.0,
+          currency: currency || "USD"
+        }
+      });
+
+      res.status(201).json({ success: true, data: portfolio });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });
     }

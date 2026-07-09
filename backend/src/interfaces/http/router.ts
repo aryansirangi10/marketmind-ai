@@ -31,7 +31,7 @@ router.post("/auth/logout", authController.logout);
 
 // Portfolio Sandbox Fallbacks
 router.get("/portfolios/list-fallback", portfolioController.listFallback);
-router.post("/portfolios/create-fallback", portfolioController.createFallback);
+router.post("/portfolios/create-custom", portfolioController.createCustom);
 
 // AI Routes (Auth Protected)
 router.post("/ai/chat", requireAuth, aiController.chat);
@@ -39,6 +39,8 @@ router.post("/ai/chat", requireAuth, aiController.chat);
 // Admin Routes (Auth & Admin Protected)
 router.get("/admin/stats", requireAuth, requireAdmin, adminController.getStats);
 router.get("/admin/logs", requireAuth, requireAdmin, adminController.getAuditLogs);
+router.post("/admin/flags/toggle", requireAuth, requireAdmin, adminController.toggleFeatureFlag);
+router.post("/admin/broadcast", requireAuth, requireAdmin, adminController.broadcastAlert);
 
 // Portfolio Routes (Auth Protected)
 router.post("/portfolios/:id/buy", requireAuth, portfolioController.buyAsset);

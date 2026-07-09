@@ -25,7 +25,8 @@ import {
   Sliders,
   BookOpen,
   Users,
-  Newspaper
+  Newspaper,
+  Layers
 } from "lucide-react";
 
 interface LayoutShellProps {
@@ -39,11 +40,31 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
+  // Command Palette State Hooks
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [paletteSearch, setPaletteSearch] = useState("");
+
+  // Keyboard short-cuts listener for Cmd + K / Ctrl + K and Escape
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+      if (e.key === "Escape") {
+        setIsCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Portfolio", href: "/portfolio", icon: Wallet },
     { name: "Screener", href: "/screener", icon: TrendingUp },
     { name: "Market News", href: "/news", icon: Newspaper },
+    { name: "Indian Markets", href: "/india", icon: Layers },
     { name: "AI Research", href: "/research", icon: BrainCircuit },
     { name: "Strategy Builder", href: "/strategy", icon: Sliders },
     { name: "Learning Center", href: "/learning", icon: BookOpen },
@@ -51,6 +72,26 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
     { name: "AI Assistant", href: "/chat", icon: MessageSquare },
     { name: "Diagnostics", href: "/admin", icon: ShieldAlert }
   ];
+
+  const commandPaletteItems = [
+    { name: "Navigate to Dashboard", description: "View portfolio, watchlists and hot stocks", href: "/" },
+    { name: "Navigate to Portfolio Desk", description: "Track holdings and execute mock paper trades", href: "/portfolio" },
+    { name: "Navigate to Screener Board", description: "Search stocks using technical/financial parameters", href: "/screener" },
+    { name: "Navigate to Indian Markets Terminal", description: "View Nifty option chains, FII/DII indices flows", href: "/india" },
+    { name: "Navigate to Market News Center", description: "Real-time feeds with NLP sentiment scores", href: "/news" },
+    { name: "Navigate to AI Research strategic suite", description: "Generate SWOT valuations and intrinsic DCF calculations", href: "/research" },
+    { name: "Navigate to Strategy Builder", description: "Create, backtest and export trading indicators", href: "/strategy" },
+    { name: "Navigate to Learning Center classes", description: "Interactive quizzes and educational tracks progress", href: "/learning" },
+    { name: "Navigate to Social Hub community", description: "Interact with peer investors and see paper leaderboard", href: "/social" },
+    { name: "Navigate to AI Assistant Copilot", description: "Consult with our LLM financial analysis coach", href: "/chat" },
+    { name: "Navigate to Admin Telemetry Workspace", description: "Toggle software flags and monitor API uptime stats", href: "/admin" }
+  ];
+
+  const filteredPaletteItems = commandPaletteItems.filter(
+    (item) =>
+      item.name.toLowerCase().includes(paletteSearch.toLowerCase()) ||
+      item.description.toLowerCase().includes(paletteSearch.toLowerCase())
+  );
 
   const notifications = [
     { id: 1, title: "Price Alert Triggered", desc: "BTC crossed ABOVE $65,500.00", time: "Just now", type: "warn" },
@@ -184,8 +225,8 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
             
             {/* Clickable Search Bar (Cmd + K Trigger) */}
             <div 
-              onClick={onSearchClick}
-              className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 border border-border text-muted-foreground hover:border-white/10 cursor-pointer text-xs w-64 transition-colors"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 border border-border text-muted-foreground hover:border-white/10 cursor-pointer text-xs w-64 transition-colors select-none"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
               <span>Search everywhere...</span>
@@ -247,6 +288,54 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
                 </div>
               </div>
             </>
+          )}
+
+          {/* Global Command Palette (Cmd + K Modal) */}
+          {isCommandPaletteOpen && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[15vh] p-4">
+              <div className="glass-card max-w-lg w-full bg-slate-950 border border-border rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[60vh]">
+                {/* Search Header */}
+                <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border shrink-0">
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Search commands or navigate..."
+                    value={paletteSearch}
+                    onChange={(e) => setPaletteSearch(e.target.value)}
+                    className="flex-1 bg-transparent text-sm text-white focus:outline-none placeholder-slate-500"
+                  />
+                  <button 
+                    onClick={() => setIsCommandPaletteOpen(false)}
+                    className="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white text-[9px] font-bold"
+                  >
+                    ESC
+                  </button>
+                </div>
+
+                {/* Results List */}
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                  {filteredPaletteItems.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-8">No command results found for "{paletteSearch}"</p>
+                  ) : (
+                    filteredPaletteItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => {
+                          setIsCommandPaletteOpen(false);
+                          setPaletteSearch("");
+                        }}
+                        className="flex flex-col gap-0.5 px-3.5 py-2.5 rounded-xl hover:bg-white/5 text-left transition-colors cursor-pointer group"
+                      >
+                        <span className="text-xs font-bold text-slate-200 group-hover:text-indigo-400">{item.name}</span>
+                        <span className="text-[10px] text-muted-foreground leading-normal">{item.description}</span>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </main>
       </div>
