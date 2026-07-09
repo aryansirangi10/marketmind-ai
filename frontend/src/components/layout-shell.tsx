@@ -87,11 +87,22 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
     { name: "Navigate to Admin Telemetry Workspace", description: "Toggle software flags and monitor API uptime stats", href: "/admin" }
   ];
 
-  const filteredPaletteItems = commandPaletteItems.filter(
+  // If user typed a search term, let's also dynamically offer to jump to that stock symbol page
+  const extraStockPaletteItem = paletteSearch.trim().length >= 2 ? [
+    {
+      name: `View Stock Page for "${paletteSearch.toUpperCase()}"`,
+      description: `Jump directly to the detailed profile, financial ratios statements, and paper trading desk for ${paletteSearch.toUpperCase()}`,
+      href: `/stocks/${paletteSearch.trim().toUpperCase()}`
+    }
+  ] : [];
+
+  const baseFiltered = commandPaletteItems.filter(
     (item) =>
       item.name.toLowerCase().includes(paletteSearch.toLowerCase()) ||
       item.description.toLowerCase().includes(paletteSearch.toLowerCase())
   );
+
+  const filteredPaletteItems = [...extraStockPaletteItem, ...baseFiltered];
 
   const notifications = [
     { id: 1, title: "Price Alert Triggered", desc: "BTC crossed ABOVE $65,500.00", time: "Just now", type: "warn" },

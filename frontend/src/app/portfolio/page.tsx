@@ -40,8 +40,11 @@ const orderSchema = z.object({
   pricePerUnit: z.number().positive("Price must be greater than zero."),
   assetType: z.enum(["STOCK", "CRYPTO"]),
   action: z.enum(["BUY", "SELL"]),
-  orderType: z.enum(["MARKET", "LIMIT", "STOP_LOSS", "TAKE_PROFIT"]),
-  triggerPrice: z.number().optional()
+  orderType: z.enum(["MARKET", "LIMIT", "STOP_LOSS", "TAKE_PROFIT", "TRAILING_STOP", "BRACKET"]),
+  triggerPrice: z.number().optional(),
+  trailingAmount: z.number().optional(),
+  bracketStopLoss: z.number().optional(),
+  bracketTakeProfit: z.number().optional()
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;
@@ -79,6 +82,7 @@ export default function PortfolioPage() {
   const [newPortfolioName, setNewPortfolioName] = useState("");
   const [newPortfolioCurrency, setNewPortfolioCurrency] = useState("USD");
   const [newPortfolioBalance, setNewPortfolioBalance] = useState(50000);
+  const [mistakeReport, setMistakeReport] = useState<any | null>(null);
 
   // Active Portfolio properties resolved below portfolios hook
 
@@ -275,7 +279,10 @@ export default function PortfolioPage() {
             pricePerUnit: values.pricePerUnit,
             assetType: values.assetType,
             orderType: values.orderType,
-            triggerPrice: values.triggerPrice
+            triggerPrice: values.triggerPrice,
+            trailingAmount: values.trailingAmount,
+            bracketStopLoss: values.bracketStopLoss,
+            bracketTakeProfit: values.bracketTakeProfit
           })
         });
 
@@ -295,6 +302,11 @@ export default function PortfolioPage() {
     onSuccess: (data) => {
       setOrderSuccess(data.message || "Order filled successfully.");
       setOrderError(null);
+      if (data?.mistakeReport) {
+        setMistakeReport(data.mistakeReport);
+      } else {
+        setMistakeReport(null);
+      }
       reset({
         symbol: "",
         quantity: 1,
@@ -315,6 +327,7 @@ export default function PortfolioPage() {
   });
 
   const onSubmit = (values: OrderFormValues) => {
+    setMistakeReport(null);
     orderMutation.mutate(values);
   };
 
@@ -706,6 +719,8 @@ export default function PortfolioPage() {
                     <option value="LIMIT" className="bg-slate-900 text-white">Limit Order</option>
                     <option value="STOP_LOSS" className="bg-slate-900 text-white">Stop Loss Order</option>
                     <option value="TAKE_PROFIT" className="bg-slate-900 text-white">Take Profit Order</option>
+                    <option value="TRAILING_STOP" className="bg-slate-900 text-white">Trailing Stop Order</option>
+                    <option value="BRACKET" className="bg-slate-900 text-white">Bracket Order (SL + TP)</option>
                   </select>
                 </div>
 
@@ -746,15 +761,55 @@ export default function PortfolioPage() {
                 </div>
 
                 {/* Trigger Price for Stop Orders */}
-                {watch("orderType") !== "MARKET" && watch("orderType") !== "LIMIT" && (
+                {(watch("orderType") === "STOP_LOSS" || watch("orderType") === "TAKE_PROFIT") && (
                   <div className="space-y-1.5 text-xs">
-                    <label className="text-[10px] text-muted-foreground font-bold uppercase">Trigger Trigger Price ({currencySymbol})</label>
+                    <label className="text-[10px] text-muted-foreground font-bold uppercase">Trigger Price ({currencySymbol})</label>
                     <input
                       type="number"
                       step="0.01"
                       {...register("triggerPrice", { valueAsNumber: true })}
                       className="w-full bg-white/5 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-400"
                     />
+                  </div>
+                )}
+
+                {/* Trailing Stop Offset input */}
+                {watch("orderType") === "TRAILING_STOP" && (
+                  <div className="space-y-1.5 text-xs">
+                    <label className="text-[10px] text-muted-foreground font-bold uppercase">Trailing Offset ({currencySymbol})</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g. 5.00"
+                      {...register("trailingAmount", { valueAsNumber: true })}
+                      className="w-full bg-white/5 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-400"
+                    />
+                  </div>
+                )}
+
+                {/* Bracket Order SL + TP bounds inputs */}
+                {watch("orderType") === "BRACKET" && (
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-muted-foreground font-bold uppercase">Bracket Stop Loss ({currencySymbol})</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 175.00"
+                        {...register("bracketStopLoss", { valueAsNumber: true })}
+                        className="w-full bg-white/5 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-400"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-muted-foreground font-bold uppercase">Bracket Take Profit ({currencySymbol})</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 210.00"
+                        {...register("bracketTakeProfit", { valueAsNumber: true })}
+                        className="w-full bg-white/5 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-400"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -773,8 +828,49 @@ export default function PortfolioPage() {
 
                 {/* Success/Error Alerts */}
                 {orderSuccess && (
-                  <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-400 text-xs rounded-xl">
-                    {orderSuccess}
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-400 text-xs rounded-xl">
+                      {orderSuccess}
+                    </div>
+
+                    {mistakeReport && (
+                      <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-[11px] text-slate-300 space-y-3.5 animate-in fade-in duration-300">
+                        <div className="flex items-center justify-between border-b border-indigo-500/10 pb-2">
+                          <span className="font-bold text-indigo-400 uppercase tracking-widest text-[9px] flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" /> AI MISTAKE DETECTOR
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-bold font-mono">
+                            Score: {mistakeReport.tradeScore}/100
+                          </span>
+                        </div>
+                        <p className="leading-relaxed text-slate-200">{mistakeReport.explanation}</p>
+                        
+                        {mistakeReport.mistakes.length > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-[9px] text-red-400 font-bold uppercase tracking-wider font-sans">Mistakes Spotted:</p>
+                            <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400">
+                              {mistakeReport.mistakes.map((m: string, i: number) => (
+                                <li key={i}>{m}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        <div className="space-y-1">
+                          <p className="text-[9px] text-green-400 font-bold uppercase tracking-wider font-sans">Educational Tips:</p>
+                          <ul className="list-disc list-inside space-y-0.5 text-[10px] text-slate-400">
+                            {mistakeReport.learningTips.map((tip: string, i: number) => (
+                              <li key={i}>{tip}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="space-y-1 font-mono text-[9px] border-t border-border/40 pt-2 text-slate-500">
+                          <p>Risk-Reward: {mistakeReport.riskRewardRatio}</p>
+                          <p>Duration: {mistakeReport.holdingPeriodRecommendation}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
                 {orderError && (

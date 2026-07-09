@@ -22,7 +22,27 @@ export class MockAIProvider implements IAIProvider {
       return "Tata Consultancy Services (TCS) is currently showing stable performance. Although the IT sector faces general global spend headwinds, TCS maintains high margins and high order books. Long-term tailwinds from enterprise generative AI integrations and cloud migrations remain robust. Major support lies around ₹3750, and resistance is marked at ₹3950.";
     }
 
-    if (query.includes("PORTFOLIO") || query.includes("OPTIMIZE") || query.includes("RISK")) {
+    if (query.includes("NIFTY") || query.includes("SENSEX") || query.includes("INDEX") || query.includes("MARKET MOVEMENT")) {
+      return "The Nifty 50 Index has shown strong structural momentum, holding above the 23,500 support level. The index trend remains constructive as long as it consolidates above the 50-day Exponential Moving Average (EMA). Sectoral leadership is rotational: while Banking (Bank Nifty) provides valuation safety, tech (IT Index) and autos (Auto Index) are acting as growth drivers. Exercise caution if India VIX spikes above 16.0.";
+    }
+
+    if (query.includes("SECTOR") || query.includes("ROTATION")) {
+      return "We are observing structural sector rotation in the Indian market. Capital is shifting from overvalued public sector undertakings (PSU Banks, Defence, Railways) and rotating back into high-quality private sector banks, consumer goods (FMCG), and IT services. FMCG acts as a defensive shield during global volatility, while Capital Goods and Infrastructure show high beta and strong multi-year order pipelines.";
+    }
+
+    if (query.includes("RBI") || query.includes("RATE") || query.includes("MONETARY POLICY")) {
+      return "The Reserve Bank of India (RBI) Monetary Policy Committee (MPC) has kept the repo rate unchanged at 6.50% to align headline inflation with the 4.00% target. Analysts anticipate a potential 25 bps rate cut in late Q4 FY26 if food inflation cools down. A rate cut will act as a major catalyst for rate-sensitive sectors, specifically Real Estate (Realty Index), Automobiles, and Banking.";
+    }
+
+    if (query.includes("BUDGET") || query.includes("GOVERNMENT POLICY") || query.includes("UNION BUDGET")) {
+      return "Government policy updates and the upcoming Union Budget remain heavily focused on capital expenditure. Priority areas include public infrastructure (Highways, Smart Cities, Metro links), defense indigenization (benefiting HAL, BEL, BDL), green energy (Adani Green, Tata Power), and railway modernization (benefiting RVNL, IRFC). Watch for changes in capital gains tax brackets, which directly affect retail market liquidity.";
+    }
+
+    if (query.includes("IPO")) {
+      return "The Indian primary market (IPO) is experiencing significant retail enthusiasm. When analyzing an IPO, verify the grey market premium (GMP) but focus primarily on fundamentals: check the Debt-to-Equity ratio, the offer's price-to-earnings (P/E) multiple compared to listed peers, and whether the issue is a Fresh Issue (capital goes to company growth) or an Offer for Sale (OFS - existing promoters exiting). Avoid companies with high OFS ratios and high valuations.";
+    }
+
+    if (query.includes("PORTFOLIO") || query.includes("OPTIMIZE") || query.includes("RISK") || query.includes("DIVERSIFY")) {
       return "Based on your current portfolio configuration, you have a high concentration in technology and crypto assets. To optimize your risk-adjusted returns (Sharpe Ratio), I recommend diversifying into defensive sectors (Healthcare or Consumer Staples) or short-duration treasuries. Your overall Portfolio Health Score is currently 78/100, indicating good performance with moderate-to-high downside risk.";
     }
 

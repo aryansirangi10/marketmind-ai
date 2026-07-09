@@ -171,10 +171,24 @@ export default function NewsHubPage() {
                             <Clock className="w-3.5 h-3.5" />
                             {new Date(article.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          <span className={`px-2 py-0.5 rounded border flex items-center gap-1 ${sentiment.color}`}>
-                            <DateIcon className="w-3 h-3" />
-                            {sentiment.label}
-                          </span>
+                          
+                          <div className="flex items-center gap-1.5">
+                            {article.impactScore && (
+                              <span className={`px-1.5 py-0.5 rounded border text-[8px] font-bold ${
+                                article.impactScore === "HIGH" 
+                                  ? "text-red-400 bg-red-500/10 border-red-500/20" 
+                                  : article.impactScore === "MEDIUM" 
+                                    ? "text-amber-400 bg-amber-500/10 border-amber-500/20" 
+                                    : "text-slate-400 bg-slate-500/10 border-slate-500/20"
+                              }`}>
+                                {article.impactScore} IMPACT
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded border flex items-center gap-1 ${sentiment.color}`}>
+                              <DateIcon className="w-3 h-3" />
+                              {sentiment.label}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Title & description */}

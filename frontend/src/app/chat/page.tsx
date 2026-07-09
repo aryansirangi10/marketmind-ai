@@ -99,10 +99,10 @@ export default function ChatPage() {
   };
 
   const suggestionChips = [
-    "Forecast AAPL price trends",
-    "How should I optimize stock + crypto weights?",
-    "What is the sentiment for Bitcoin?",
-    "Perform a portfolio risk analysis"
+    "Explain Nifty market movements",
+    "What is the RBI repo rate policy outlook?",
+    "Explain the Indian market sector rotation",
+    "How does the Union Budget affect infrastructure stocks?"
   ];
 
   return (
@@ -119,12 +119,12 @@ export default function ChatPage() {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  MarketMind AI Assistant
+                  MarketMind AI Trading Coach
                   <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-[10px] text-indigo-300 font-bold border border-indigo-500/20">
                     Active
                   </span>
                 </h2>
-                <p className="text-[10px] text-muted-foreground">Expert financial research & model insights.</p>
+                <p className="text-[10px] text-muted-foreground">Expert Indian financial market coaching & analysis.</p>
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function ChatPage() {
               <input
                 type="text"
                 disabled={chatMutation.isPending}
-                placeholder="Type your investment query or forecast demand... (e.g. 'Optimize my portfolio')"
+                placeholder="Ask our AI Trading Coach about Nifty, sector rotation, or RBI rate decisions..."
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 className="flex-1 bg-white/5 border border-border rounded-xl px-4 py-2.5 text-xs text-white placeholder-muted-foreground focus:outline-none focus:border-indigo-500 disabled:opacity-50"

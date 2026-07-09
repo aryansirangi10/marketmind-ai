@@ -12,6 +12,7 @@ export interface NewsArticle {
   publishedAt: Date;
   summary?: string;
   sentimentScore?: number; // Calculated field if NLP is run
+  impactScore?: "HIGH" | "MEDIUM" | "LOW";
 }
 
 export interface INewsProvider {
