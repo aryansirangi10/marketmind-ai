@@ -50,6 +50,78 @@ export class MockStockProvider implements IStockProvider {
       weburl: "https://www.nvidia.com",
       logoUrl: "https://logo.clearbit.com/nvidia.com",
       finnhubIndustry: "Semiconductors"
+    },
+    RELIANCE: {
+      name: "Reliance Industries Limited (NSE/BSE)",
+      ticker: "RELIANCE",
+      marketCapitalization: 16800000, // ₹16.8T
+      shareOutstanding: 6760, // 6.76B
+      weburl: "https://www.ril.com",
+      logoUrl: "https://logo.clearbit.com/ril.com",
+      finnhubIndustry: "Conglomerate"
+    },
+    TCS: {
+      name: "Tata Consultancy Services (NSE/BSE)",
+      ticker: "TCS",
+      marketCapitalization: 13900000, // ₹13.9T
+      shareOutstanding: 3660, // 3.66B
+      weburl: "https://www.tcs.com",
+      logoUrl: "https://logo.clearbit.com/tcs.com",
+      finnhubIndustry: "IT Services"
+    },
+    INFY: {
+      name: "Infosys Limited (NSE/BSE)",
+      ticker: "INFY",
+      marketCapitalization: 6400000, // ₹6.4T
+      shareOutstanding: 4150, // 4.15B
+      weburl: "https://www.infosys.com",
+      logoUrl: "https://logo.clearbit.com/infosys.com",
+      finnhubIndustry: "IT Services"
+    },
+    NIFTY: {
+      name: "Nifty 50 Index (NSE)",
+      ticker: "NIFTY",
+      marketCapitalization: 0,
+      shareOutstanding: 0,
+      weburl: "https://www.nseindia.com",
+      logoUrl: "https://logo.clearbit.com/nseindia.com",
+      finnhubIndustry: "Indices"
+    },
+    SENSEX: {
+      name: "S&P BSE Sensex Index (BSE)",
+      ticker: "SENSEX",
+      marketCapitalization: 0,
+      shareOutstanding: 0,
+      weburl: "https://www.bseindia.com",
+      logoUrl: "https://logo.clearbit.com/bseindia.com",
+      finnhubIndustry: "Indices"
+    },
+    SPY: {
+      name: "SPDR S&P 500 ETF Trust",
+      ticker: "SPY",
+      marketCapitalization: 520000,
+      shareOutstanding: 950,
+      weburl: "https://www.ssga.com",
+      logoUrl: "https://logo.clearbit.com/ssga.com",
+      finnhubIndustry: "ETFs"
+    },
+    QQQ: {
+      name: "Invesco QQQ Trust (Nasdaq-100)",
+      ticker: "QQQ",
+      marketCapitalization: 240000,
+      shareOutstanding: 510,
+      weburl: "https://www.invesco.com",
+      logoUrl: "https://logo.clearbit.com/invesco.com",
+      finnhubIndustry: "ETFs"
+    },
+    VFIAX: {
+      name: "Vanguard 500 Index Fund (Mutual Fund)",
+      ticker: "VFIAX",
+      marketCapitalization: 850000,
+      shareOutstanding: 1750,
+      weburl: "https://www.vanguard.com",
+      logoUrl: "https://logo.clearbit.com/vanguard.com",
+      finnhubIndustry: "Mutual Funds"
     }
   };
 
@@ -58,7 +130,15 @@ export class MockStockProvider implements IStockProvider {
     MSFT: 420.20,
     GOOGL: 172.80,
     TSLA: 178.90,
-    NVDA: 885.00
+    NVDA: 885.00,
+    RELIANCE: 2450.00,
+    TCS: 3820.00,
+    INFY: 1540.00,
+    NIFTY: 23500.00,
+    SENSEX: 77200.00,
+    SPY: 545.00,
+    QQQ: 475.00,
+    VFIAX: 485.00
   };
 
   public async getQuote(symbol: string): Promise<StockQuote> {

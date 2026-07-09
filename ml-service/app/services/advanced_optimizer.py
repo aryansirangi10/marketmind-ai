@@ -11,7 +11,7 @@ class AdvancedOptimizer:
     """
     
     @staticmethod
-    def calculate_risk_parity(cov_matrix: List[List[float]], asset_names: List[String]) -> Dict[str, Any]:
+    def calculate_risk_parity(cov_matrix: List[List[float]], asset_names: List[str]) -> Dict[str, Any]:
         """
         Calculates weights such that the risk contribution of each asset is equalized.
         Using a standard numeric approximation: w_i is proportional to 1 / std_dev_i
