@@ -10,23 +10,23 @@ export class MockAIProvider implements IAIProvider {
     const query = lastMessage.toUpperCase();
 
     // Smart contextual mock answers
-    if (query.includes("AAPL") || query.includes("APPLE")) {
-      return "Apple Inc. (AAPL) is currently showing strong fundamentals. With a market cap of over $3.1T and steady demand in services, it remains a defensive technology pick. Technically, AAPL is trading near its 50-day moving average, representing a key support level. Analysts cite potential growth in consumer electronics powered by edge-AI features as a catalyst for Q3.";
+    if (query.includes("RELIANCE") || query.includes("RIL")) {
+      return "Reliance Industries Limited (RELIANCE) is showing strong fundamentals. With a market cap of over ₹16.8T and diversified growth in retail, telecom (Jio), and green energy, it remains a pillar technology/energy pick. Technically, RELIANCE is trading near its 50-day moving average, representing a key support level. Analysts cite potential value unlocking from retail/telecom IPOs as a catalyst.";
     }
 
     if (query.includes("BTC") || query.includes("BITCOIN")) {
       return "Bitcoin (BTC) is demonstrating significant bullish momentum, consolidating above the $65,000 mark. Institutional inflows via spot ETFs are providing a robust floor. Keep an eye on MACD crossovers on the daily chart; a sustained breakout past $68,000 could open the path toward $72,000, while a drop below $62,000 is a critical support zone.";
     }
 
-    if (query.includes("TSLA") || query.includes("TESLA")) {
-      return "Tesla (TSLA) is currently experiencing high volatility. The market is pricing in regulatory headwinds and margin compressions from pricing shifts. However, long-term drivers such as their self-driving beta releases and energy storage business present substantial upside. Major support lies around $165, and resistance is marked at $195.";
+    if (query.includes("TCS") || query.includes("TATA")) {
+      return "Tata Consultancy Services (TCS) is currently showing stable performance. Although the IT sector faces general global spend headwinds, TCS maintains high margins and high order books. Long-term tailwinds from enterprise generative AI integrations and cloud migrations remain robust. Major support lies around ₹3750, and resistance is marked at ₹3950.";
     }
 
     if (query.includes("PORTFOLIO") || query.includes("OPTIMIZE") || query.includes("RISK")) {
       return "Based on your current portfolio configuration, you have a high concentration in technology and crypto assets. To optimize your risk-adjusted returns (Sharpe Ratio), I recommend diversifying into defensive sectors (Healthcare or Consumer Staples) or short-duration treasuries. Your overall Portfolio Health Score is currently 78/100, indicating good performance with moderate-to-high downside risk.";
     }
 
-    return "Hello! I am your MarketMind AI financial assistant. I can help you analyze stock profiles (e.g. AAPL, NVDA), cryptocurrency trends (e.g. BTC, ETH), news sentiment, or review your portfolio allocations. What asset would you like to review today?";
+    return "Hello! I am your MarketMind AI financial assistant. I can help you analyze Indian stock profiles (e.g. RELIANCE, TCS), cryptocurrency trends (e.g. BTC, ETH), news sentiment, or review your portfolio allocations. What asset would you like to review today?";
   }
 
   public async analyzeSentiment(text: string): Promise<SentimentAnalysisResult> {

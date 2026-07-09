@@ -78,6 +78,24 @@ export class MockStockProvider implements IStockProvider {
       logoUrl: "https://logo.clearbit.com/infosys.com",
       finnhubIndustry: "IT Services"
     },
+    TATAMOTORS: {
+      name: "Tata Motors Limited (NSE/BSE)",
+      ticker: "TATAMOTORS",
+      marketCapitalization: 3900000, // ₹3.9T
+      shareOutstanding: 3320, // 3.32B
+      weburl: "https://www.tatamotors.com",
+      logoUrl: "https://logo.clearbit.com/tatamotors.com",
+      finnhubIndustry: "Automotive"
+    },
+    HDFCBANK: {
+      name: "HDFC Bank Limited (NSE/BSE)",
+      ticker: "HDFCBANK",
+      marketCapitalization: 12300000, // ₹12.3T
+      shareOutstanding: 7600, // 7.6B
+      weburl: "https://www.hdfcbank.com",
+      logoUrl: "https://logo.clearbit.com/hdfcbank.com",
+      finnhubIndustry: "Banking"
+    },
     NIFTY: {
       name: "Nifty 50 Index (NSE)",
       ticker: "NIFTY",
@@ -134,6 +152,8 @@ export class MockStockProvider implements IStockProvider {
     RELIANCE: 2450.00,
     TCS: 3820.00,
     INFY: 1540.00,
+    TATAMOTORS: 980.00,
+    HDFCBANK: 1620.00,
     NIFTY: 23500.00,
     SENSEX: 77200.00,
     SPY: 545.00,

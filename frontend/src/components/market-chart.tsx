@@ -163,6 +163,9 @@ export default function MarketChart({ symbol, data, isLoading }: MarketChartProp
 
   const timeframes: Array<"1D" | "1W" | "1M" | "3M" | "1Y"> = ["1D", "1W", "1M", "3M", "1Y"];
 
+  const isCrypto = ["BTC", "ETH", "SOL", "XRP"].includes(symbol?.toUpperCase() || "");
+  const currencySymbol = isCrypto ? "$" : "₹";
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const dataPoint: ChartDataPoint = payload[0].payload;
@@ -171,25 +174,25 @@ export default function MarketChart({ symbol, data, isLoading }: MarketChartProp
           <p className="font-sans font-bold text-white text-xs mb-1">{dataPoint.formattedDate}</p>
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
             <span className="text-muted-foreground">Close Price:</span>
-            <span className="text-white text-right font-bold">${dataPoint.close.toFixed(2)}</span>
+            <span className="text-white text-right font-bold">{currencySymbol}{dataPoint.close.toFixed(2)}</span>
             {showSMA && dataPoint.sma && (
               <>
                 <span className="text-amber-400">SMA (20):</span>
-                <span className="text-amber-400 text-right">${dataPoint.sma.toFixed(2)}</span>
+                <span className="text-amber-400 text-right">{currencySymbol}{dataPoint.sma.toFixed(2)}</span>
               </>
             )}
             {showEMA && dataPoint.ema && (
               <>
                 <span className="text-teal-400">EMA (20):</span>
-                <span className="text-teal-400 text-right">${dataPoint.ema.toFixed(2)}</span>
+                <span className="text-teal-400 text-right">{currencySymbol}{dataPoint.ema.toFixed(2)}</span>
               </>
             )}
             {showBB && dataPoint.bbUpper !== undefined && dataPoint.bbLower !== undefined && (
               <>
                 <span className="text-purple-400">BB Upper:</span>
-                <span className="text-purple-400 text-right">${dataPoint.bbUpper.toFixed(2)}</span>
+                <span className="text-purple-400 text-right">{currencySymbol}{dataPoint.bbUpper.toFixed(2)}</span>
                 <span className="text-purple-400">BB Lower:</span>
-                <span className="text-purple-400 text-right">${dataPoint.bbLower.toFixed(2)}</span>
+                <span className="text-purple-400 text-right">{currencySymbol}{dataPoint.bbLower.toFixed(2)}</span>
               </>
             )}
             {showRSI && dataPoint.rsi && (
@@ -299,7 +302,7 @@ export default function MarketChart({ symbol, data, isLoading }: MarketChartProp
                 tickLine={false} 
                 axisLine={false}
                 domain={["auto", "auto"]}
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
+                tickFormatter={(value) => `${currencySymbol}${value.toLocaleString()}`}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(255,255,255,0.1)", strokeWidth: 1 }} />
               

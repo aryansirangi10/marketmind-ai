@@ -19,11 +19,11 @@ export default function TickerTape() {
   const [tickers, setTickers] = useState<TickerData[]>([
     { symbol: "BTC", price: 65240.50, change: 480.20, changePercent: 0.74, type: "CRYPTO" },
     { symbol: "ETH", price: 3512.80, change: -45.60, changePercent: -1.28, type: "CRYPTO" },
-    { symbol: "AAPL", price: 185.74, change: 1.24, changePercent: 0.67, type: "STOCK" },
-    { symbol: "MSFT", price: 420.45, change: -2.35, changePercent: -0.56, type: "STOCK" },
-    { symbol: "NVDA", price: 887.20, change: 12.80, changePercent: 1.46, type: "STOCK" },
-    { symbol: "SOL", price: 146.35, change: 5.40, changePercent: 3.83, type: "CRYPTO" },
-    { symbol: "TSLA", price: 178.60, change: -0.90, changePercent: -0.50, type: "STOCK" }
+    { symbol: "RELIANCE", price: 2450.00, change: 25.40, changePercent: 1.05, type: "STOCK" },
+    { symbol: "TCS", price: 3820.00, change: -12.30, changePercent: -0.32, type: "STOCK" },
+    { symbol: "INFY", price: 1540.00, change: 18.50, changePercent: 1.21, type: "STOCK" },
+    { symbol: "TATAMOTORS", price: 980.00, change: 8.40, changePercent: 0.86, type: "STOCK" },
+    { symbol: "HDFCBANK", price: 1620.00, change: -5.10, changePercent: -0.31, type: "STOCK" }
   ]);
 
   const [flashStates, setFlashStates] = useState<Record<string, "up" | "down" | null>>({});
@@ -143,7 +143,7 @@ export default function TickerTape() {
               >
                 <span className="font-bold text-xs text-white">{t.symbol}</span>
                 <span className="font-mono text-xs text-slate-200">
-                  ${t.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                  {t.type === "CRYPTO" ? "$" : "₹"}{t.price.toLocaleString(t.type === "CRYPTO" ? "en-US" : "en-IN", { minimumFractionDigits: 2 })}
                 </span>
                 <span className={`flex items-center text-[10px] font-semibold ${
                   isPositive ? "text-green-400" : "text-red-400"

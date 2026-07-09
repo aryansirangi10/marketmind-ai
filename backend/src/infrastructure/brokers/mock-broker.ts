@@ -7,7 +7,7 @@ import { IBroker, BrokerOrder, BrokerHolding } from "../../domain/brokers/broker
 export class MockBroker implements IBroker {
   protected balance = 100000.0;
   protected holdings: BrokerHolding[] = [
-    { symbol: "AAPL", quantity: 50, averageBuyPrice: 180.0, currentPrice: 185.24 },
+    { symbol: "RELIANCE", quantity: 150, averageBuyPrice: 2400.0, currentPrice: 2450.0 },
     { symbol: "BTC", quantity: 0.5, averageBuyPrice: 62000.0, currentPrice: 65800.0 }
   ];
 

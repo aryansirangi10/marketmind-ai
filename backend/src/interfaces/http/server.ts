@@ -60,11 +60,13 @@ io.on("connection", (socket) => {
 // Periodic Market Broadcast Interval (3 seconds)
 setInterval(() => {
   const tickData = [
+    { symbol: "RELIANCE", price: 2450 + Math.random() * 15 },
+    { symbol: "TCS", price: 3820 + Math.random() * 20 },
+    { symbol: "INFY", price: 1540 + Math.random() * 10 },
+    { symbol: "TATAMOTORS", price: 980 + Math.random() * 8 },
+    { symbol: "HDFCBANK", price: 1620 + Math.random() * 12 },
     { symbol: "BTC", price: 65000 + Math.random() * 500 },
-    { symbol: "ETH", price: 3500 + Math.random() * 50 },
-    { symbol: "AAPL", price: 185 + Math.random() * 2 },
-    { symbol: "MSFT", price: 420 + Math.random() * 3 },
-    { symbol: "SOL", price: 145 + Math.random() * 4 }
+    { symbol: "ETH", price: 3500 + Math.random() * 50 }
   ];
   
   io.emit("price_ticks", tickData);

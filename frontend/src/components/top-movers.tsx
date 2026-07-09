@@ -16,16 +16,16 @@ export default function TopMovers() {
   const [activeTab, setActiveTab] = useState<"GAINERS" | "LOSERS">("GAINERS");
 
   const gainers: Mover[] = [
-    { symbol: "NVDA", name: "NVIDIA Corp", price: 128.50, change: 4.85 },
+    { symbol: "RELIANCE", name: "Reliance Industries Ltd", price: 2475.40, change: 1.05 },
     { symbol: "SOL", name: "Solana", price: 148.20, change: 3.92 },
-    { symbol: "AVGO", name: "Broadcom Inc", price: 1680.10, change: 2.15 },
+    { symbol: "TATAMOTORS", name: "Tata Motors Ltd", price: 988.40, change: 0.86 },
     { symbol: "BTC", name: "Bitcoin", price: 65800.00, change: 1.82 }
   ];
 
   const losers: Mover[] = [
-    { symbol: "TSLA", name: "Tesla Inc", price: 178.40, change: -5.42 },
+    { symbol: "INFY", name: "Infosys Ltd", price: 1521.50, change: -1.20 },
     { symbol: "XRP", name: "Ripple", price: 0.42, change: -4.10 },
-    { symbol: "BAC", name: "Bank of America", price: 38.20, change: -2.85 },
+    { symbol: "TCS", name: "Tata Consultancy Services", price: 3807.70, change: -0.32 },
     { symbol: "ETH", name: "Ethereum", price: 3450.00, change: -1.65 }
   ];
 
@@ -66,6 +66,8 @@ export default function TopMovers() {
       <div className="flex-1 overflow-y-auto space-y-3 pr-1">
         {list.map((item) => {
           const isGainer = item.change >= 0;
+          const isCrypto = ["BTC", "ETH", "SOL", "XRP"].includes(item.symbol);
+          const currencySymbol = isCrypto ? "$" : "₹";
           return (
             <div key={item.symbol} className="flex items-center justify-between text-xs hover:bg-white/5 p-1 rounded-lg transition-colors">
               <div className="space-y-0.5">
@@ -75,7 +77,7 @@ export default function TopMovers() {
 
               <div className="text-right">
                 <p className="font-mono text-white font-semibold">
-                  ${item.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {currencySymbol}{item.price.toLocaleString(isCrypto ? "en-US" : "en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
                 <span className={`text-[10px] font-semibold flex items-center justify-end gap-0.5 mt-0.5 ${
                   isGainer ? "text-green-400" : "text-red-400"

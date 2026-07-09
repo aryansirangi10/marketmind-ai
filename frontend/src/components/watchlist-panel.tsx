@@ -26,11 +26,11 @@ export default function WatchlistPanel({ onSelectAsset, activeSymbol }: Watchlis
   const [tab, setTab] = useState<"STOCKS" | "CRYPTO">("STOCKS");
 
   const stocksList: AssetItem[] = [
-    { symbol: "AAPL", name: "Apple Inc.", price: 185.74, change: 1.24, changePercent: 0.67, type: "STOCK", volume: "52.4M" },
-    { symbol: "MSFT", name: "Microsoft Corporation", price: 420.45, change: -2.35, changePercent: -0.56, type: "STOCK", volume: "22.8M" },
-    { symbol: "GOOGL", name: "Alphabet Inc.", price: 172.80, change: 0.95, changePercent: 0.55, type: "STOCK", volume: "18.1M" },
-    { symbol: "NVDA", name: "NVIDIA Corporation", price: 887.20, change: 12.80, changePercent: 1.46, type: "STOCK", volume: "41.6M" },
-    { symbol: "TSLA", name: "Tesla Inc.", price: 178.60, change: -0.90, changePercent: -0.50, type: "STOCK", volume: "85.3M" }
+    { symbol: "RELIANCE", name: "Reliance Industries Ltd.", price: 2450.00, change: 25.40, changePercent: 1.05, type: "STOCK", volume: "4.2M" },
+    { symbol: "TCS", name: "Tata Consultancy Services", price: 3820.00, change: -12.30, changePercent: -0.32, type: "STOCK", volume: "1.8M" },
+    { symbol: "INFY", name: "Infosys Limited", price: 1540.00, change: 18.50, changePercent: 1.21, type: "STOCK", volume: "2.1M" },
+    { symbol: "TATAMOTORS", name: "Tata Motors Ltd.", price: 980.00, change: 8.40, changePercent: 0.86, type: "STOCK", volume: "5.3M" },
+    { symbol: "HDFCBANK", name: "HDFC Bank Ltd.", price: 1620.00, change: -5.10, changePercent: -0.31, type: "STOCK", volume: "3.2M" }
   ];
 
   const cryptoList: AssetItem[] = [
@@ -109,7 +109,7 @@ export default function WatchlistPanel({ onSelectAsset, activeSymbol }: Watchlis
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-white font-medium">
-                    ${item.price.toLocaleString("en-US", { minimumFractionDigits: item.type === "CRYPTO" && item.price < 1 ? 4 : 2 })}
+                    {item.type === "CRYPTO" ? "$" : "₹"}{item.price.toLocaleString(item.type === "CRYPTO" ? "en-US" : "en-IN", { minimumFractionDigits: item.type === "CRYPTO" && item.price < 1 ? 4 : 2 })}
                   </td>
                   <td className={`py-3.5 px-4 text-right font-semibold font-mono ${
                     isPositive ? "text-green-400" : "text-red-400"

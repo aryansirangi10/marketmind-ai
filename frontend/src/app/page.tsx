@@ -44,7 +44,7 @@ interface WidgetConfig {
 
 export default function DashboardPage() {
   const [activeAsset, setActiveAsset] = useState<{ symbol: string; type: "STOCK" | "CRYPTO" }>({
-    symbol: "AAPL",
+    symbol: "RELIANCE",
     type: "STOCK"
   });
 
@@ -136,15 +136,14 @@ export default function DashboardPage() {
     }
 
     const mockDataset = [
-      { symbol: "AAPL", name: "Apple Inc.", type: "STOCK" as const },
-      { symbol: "MSFT", name: "Microsoft Corporation", type: "STOCK" as const },
-      { symbol: "GOOGL", name: "Alphabet Inc.", type: "STOCK" as const },
-      { symbol: "NVDA", name: "NVIDIA Corporation", type: "STOCK" as const },
-      { symbol: "TSLA", name: "Tesla Inc.", type: "STOCK" as const },
+      { symbol: "RELIANCE", name: "Reliance Industries Ltd. (NSE)", type: "STOCK" as const },
+      { symbol: "TCS", name: "Tata Consultancy Services (NSE)", type: "STOCK" as const },
+      { symbol: "INFY", name: "Infosys Limited (NSE)", type: "STOCK" as const },
+      { symbol: "HDFCBANK", name: "HDFC Bank Ltd. (NSE)", type: "STOCK" as const },
+      { symbol: "TATAMOTORS", name: "Tata Motors Ltd. (NSE)", type: "STOCK" as const },
       { symbol: "BTC", name: "Bitcoin", type: "CRYPTO" as const },
       { symbol: "ETH", name: "Ethereum", type: "CRYPTO" as const },
-      { symbol: "SOL", name: "Solana", type: "CRYPTO" as const },
-      { symbol: "XRP", name: "Ripple", type: "CRYPTO" as const }
+      { symbol: "SOL", name: "Solana", type: "CRYPTO" as const }
     ];
 
     const query = searchQuery.toUpperCase();
@@ -220,6 +219,8 @@ export default function DashboardPage() {
     }
   };
 
+  const currencySymbol = activeAsset.type === "CRYPTO" ? "$" : "₹";
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TickerTape />
@@ -293,7 +294,7 @@ export default function DashboardPage() {
                   {isQuoteLoading ? (
                     <span className="h-8 w-24 bg-white/5 animate-pulse inline-block rounded" />
                   ) : (
-                    `$${quote?.currentPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+                    `${currencySymbol}${quote?.currentPrice.toLocaleString(activeAsset.type === "CRYPTO" ? "en-US" : "en-IN", { minimumFractionDigits: 2 })}`
                   )}
                 </span>
                 <span className={`text-xs font-semibold flex items-center ${isPositive ? "text-green-400" : "text-red-400"}`}>
@@ -309,13 +310,13 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-[10px] text-muted-foreground font-bold">24H HIGH</p>
                   <p className="text-sm font-mono font-semibold text-green-400 mt-0.5">
-                    {isQuoteLoading ? "..." : `$${quote?.highPrice.toFixed(2)}`}
+                    {isQuoteLoading ? "..." : `${currencySymbol}${quote?.highPrice.toLocaleString(activeAsset.type === "CRYPTO" ? "en-US" : "en-IN", { minimumFractionDigits: 2 })}`}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground font-bold">24H LOW</p>
                   <p className="text-sm font-mono font-semibold text-red-400 mt-0.5">
-                    {isQuoteLoading ? "..." : `$${quote?.lowPrice.toFixed(2)}`}
+                    {isQuoteLoading ? "..." : `${currencySymbol}${quote?.lowPrice.toLocaleString(activeAsset.type === "CRYPTO" ? "en-US" : "en-IN", { minimumFractionDigits: 2 })}`}
                   </p>
                 </div>
               </div>
@@ -331,7 +332,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-[10px] text-muted-foreground font-bold">EST. MARKET CAP</p>
                   <p className="text-sm font-semibold text-white mt-0.5">
-                    {activeAsset.type === "CRYPTO" ? "$1.28 Trillion" : "$3.12 Trillion"}
+                    {activeAsset.type === "CRYPTO" ? "$1.28 Trillion" : "₹16.8 Trillion"}
                   </p>
                 </div>
               </div>
@@ -347,7 +348,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-[10px] text-muted-foreground font-bold">24H VOL / SPREAD</p>
                   <p className="text-sm font-semibold text-white mt-0.5">
-                    {activeAsset.type === "CRYPTO" ? "$28.4 Billion" : "52.4 Million / 0.01%"}
+                    {activeAsset.type === "CRYPTO" ? "$28.4 Billion" : "4.2 Million / 0.02%"}
                   </p>
                 </div>
               </div>
@@ -379,7 +380,7 @@ export default function DashboardPage() {
               <input
                 type="text"
                 autoFocus
-                placeholder="Search stocks, crypto, indices... (e.g. AAPL, BTC)"
+                placeholder="Search stocks, crypto, indices... (e.g. RELIANCE, BTC)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent text-sm text-white placeholder-muted-foreground focus:outline-none"
@@ -415,12 +416,12 @@ export default function DashboardPage() {
                 </div>
               ) : searchQuery.trim().length > 0 ? (
                 <div className="py-12 text-center text-xs text-muted-foreground">
-                  No matching assets found. Try searching "AAPL", "NVDA", or "BTC".
+                  No matching assets found. Try searching "RELIANCE", "TCS", or "BTC".
                 </div>
               ) : (
                 <div className="py-8 px-4 text-center text-xs text-muted-foreground space-y-1">
                   <p>Type a ticker symbol or name to search.</p>
-                  <p className="text-[10px] opacity-75">Common items: AAPL, TSLA, MSFT, BTC, ETH, SOL</p>
+                  <p className="text-[10px] opacity-75">Common items: RELIANCE, TCS, INFY, BTC, ETH</p>
                 </div>
               )}
             </div>
