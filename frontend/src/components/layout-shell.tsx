@@ -20,7 +20,11 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
-  ShieldAlert
+  ShieldAlert,
+  BrainCircuit,
+  Sliders,
+  BookOpen,
+  Users
 } from "lucide-react";
 
 interface LayoutShellProps {
@@ -38,6 +42,10 @@ export default function LayoutShell({ children, onSearchClick }: LayoutShellProp
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Portfolio", href: "/portfolio", icon: Wallet },
     { name: "Screener", href: "/screener", icon: TrendingUp },
+    { name: "AI Research", href: "/research", icon: BrainCircuit },
+    { name: "Strategy Builder", href: "/strategy", icon: Sliders },
+    { name: "Learning Center", href: "/learning", icon: BookOpen },
+    { name: "Social Hub", href: "/social", icon: Users },
     { name: "AI Assistant", href: "/chat", icon: MessageSquare },
     { name: "Diagnostics", href: "/admin", icon: ShieldAlert }
   ];

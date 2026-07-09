@@ -4,10 +4,10 @@
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Dict
-from app.services.forecast import predict_prices
-from app.services.sentiment import analyze_headlines
-from app.services.optimizer import optimize_portfolio
+from typing import List, Dict, Optional
+from app.services.forecast import ForecastingEngine
+from app.services.advanced_optimizer import AdvancedOptimizer
+from app.services.sentiment_analyzer import SentimentAnalyzer
 from app.services.indicators import (
     calculate_sma,
     calculate_ema,
@@ -22,19 +22,26 @@ app = FastAPI(
     description="Machine Learning price projections, NLP sentiment, and Modern Portfolio optimizations."
 )
 
+forecast_engine = ForecastingEngine()
+
 # ------------------------------------------------------------------------------
 # API Schema Definition (Pydantic Models)
 # ------------------------------------------------------------------------------
 class ForecastRequest(BaseModel):
     prices: List[float] = Field(..., description="Chronological sequence of closing price valuations")
     days: int = Field(7, description="Number of future intervals to forecast ahead", ge=1, le=30)
+    model: str = Field("random_forest", description="Prediction model type (lstm, prophet, random_forest)")
 
 class SentimentRequest(BaseModel):
-    headlines: List[str] = Field(..., description="Financial titles or content articles to score")
+    text: str = Field(..., description="Headline or text context to analyze")
+    symbol: Optional[str] = Field(None, description="Related asset symbol filter")
 
-class OptimizeRequest(BaseModel):
-    assets: Dict[str, List[float]] = Field(..., description="Symbol maps referencing historic price series")
-    risk_free_rate: float = Field(0.02, description="Yield benchmark for cash positions")
+class AdvancedOptimizeRequest(BaseModel):
+    returns: List[float] = Field(..., description="Market equilibrium return weights")
+    cov_matrix: List[List[float]] = Field(..., description="Covariance variance matrix coordinates")
+    asset_names: List[str] = Field(..., description="Names of stock/crypto constituent tickers")
+    user_views: Dict[str, float] = Field(default_factory=dict, description="Active view return offsets")
+    method: str = Field("risk_parity", description="Optimization methodology (risk_parity, black_litterman)")
 
 class IndicatorsRequest(BaseModel):
     prices: List[float] = Field(..., description="Chronological sequence of closing price valuations")
@@ -56,41 +63,52 @@ def health_check():
 @app.post("/forecast")
 def forecast_route(request: ForecastRequest):
     """
-    Computes autoregressive asset price predictions
+    Computes autoregressive asset price predictions using selected model
     """
     if len(request.prices) == 0:
         raise HTTPException(status_code=400, detail="Historical prices list cannot be empty.")
     try:
-        forecasted = predict_prices(request.prices, request.days)
-        return {"success": True, "predictions": forecasted}
+        forecasted = forecast_engine.generate_forecast(request.model, request.prices, request.days)
+        return {"success": True, "data": forecasted}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Forecasting engine error: {str(e)}")
 
-@app.post("/sentiment")
+@app.post("/sentiment/analyze")
 def sentiment_route(request: SentimentRequest):
     """
-    Calculates natural language finance sentiment aggregate metrics
+    Calculates natural language financial sentiment and impact metrics
     """
-    if len(request.headlines) == 0:
-        raise HTTPException(status_code=400, detail="News headlines list cannot be empty.")
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Text contents cannot be empty.")
     try:
-        report = analyze_headlines(request.headlines)
+        report = SentimentAnalyzer.analyze_text(request.text, request.symbol)
         return {"success": True, "data": report}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sentiment analyzer engine error: {str(e)}")
 
-@app.post("/optimize")
-def optimize_route(request: OptimizeRequest):
+@app.post("/optimize/advanced")
+def optimize_route(request: AdvancedOptimizeRequest):
     """
-    Solves optimal weights using Markowitz Modern Portfolio Theory (MPT)
+    Solves weights optimization using Black-Litterman views integration or Risk Parity
     """
-    if len(request.assets) == 0:
-        raise HTTPException(status_code=400, detail="Assets historical data maps cannot be empty.")
+    if not request.asset_names:
+        raise HTTPException(status_code=400, detail="Asset names list cannot be empty.")
     try:
-        allocations = optimize_portfolio(request.assets, request.risk_free_rate)
-        return {"success": True, "data": allocations}
+        if request.method.lower() == "black_litterman":
+            result = AdvancedOptimizer.calculate_black_litterman(
+                request.returns,
+                request.cov_matrix,
+                request.asset_names,
+                request.user_views
+            )
+        else:
+            result = AdvancedOptimizer.calculate_risk_parity(
+                request.cov_matrix,
+                request.asset_names
+            )
+        return {"success": True, "data": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Portfolio optimizer engine error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Advanced optimizer engine error: {str(e)}")
 
 @app.post("/indicators")
 def indicators_route(request: IndicatorsRequest):

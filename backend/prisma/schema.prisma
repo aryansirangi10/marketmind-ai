@@ -79,6 +79,12 @@ model User {
   orders       Order[]
   auditLogs    AuditLog[]
   backtestRuns BacktestRun[]
+  strategies   Strategy[]
+  socialPosts  SocialPost[]
+  followers    UserFollow[]       @relation("UserFollowing")
+  following    UserFollow[]       @relation("UserFollower")
+  quizProgress UserQuizProgress[]
+  subscription Subscription?
 
   @@map("users")
 }
@@ -152,6 +158,7 @@ model Transaction {
   // Relations
   portfolio       Portfolio       @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
   asset           Asset           @relation(fields: [assetId], references: [id])
+  journalEntry    TradeJournalEntry?
 
   @@map("transactions")
 }
@@ -282,7 +289,10 @@ model BacktestRun {
   cagr         Float
   sharpeRatio  Float     @map("sharpe_ratio")
   maxDrawdown  Float     @map("max_drawdown")
-  tradesCount  Int       @map("trades_count")
+  winRate      Float?    @map("win_rate")
+  profitFactor Float?    @map("profit_factor")
+  equityCurve  Json?     @map("equity_curve")
+  tradesList   Json?     @map("trades_list")
   createdAt    DateTime  @default(now())
 
   // Relations
@@ -300,4 +310,139 @@ model FeatureFlag {
   updatedAt   DateTime @updatedAt
 
   @@map("feature_flags")
+}
+
+// ------------------------------------------------------------------------------
+// New Ecosystem Models
+// ------------------------------------------------------------------------------
+
+model Strategy {
+  id         String   @id @default(uuid())
+  name       String
+  type       String   // e.g. "EMA_CROSSOVER", "RSI", "MACD", "CUSTOM"
+  parameters Json     // holds indicator configurations, risk management, stop-loss rules
+  userId     String   @map("user_id")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("strategies")
+}
+
+model TradeJournalEntry {
+  id            String   @id @default(uuid())
+  transactionId String   @unique @map("transaction_id")
+  notes         String
+  sentiment     String   // "BULLISH", "BEARISH", "NEUTRAL"
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("trade_journal_entries")
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  category    String   // e.g. "Technical Analysis", "Beginner Investing"
+  description String
+  level       String   // "BEGINNER", "INTERMEDIATE", "ADVANCED"
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  quizzes     Quiz[]
+
+  @@map("courses")
+}
+
+model Quiz {
+  id                 String             @id @default(uuid())
+  courseId           String             @map("course_id")
+  question           String
+  options            String[]           // Array of option texts
+  correctAnswerIndex Int                @map("correct_answer_index")
+  createdAt          DateTime           @default(now())
+  
+  // Relations
+  course             Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  userProgress       UserQuizProgress[]
+
+  @@map("quizzes")
+}
+
+model UserQuizProgress {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  quizId      String   @map("quiz_id")
+  completed   Boolean  @default(false)
+  score       Float    @default(0.0)
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("user_quiz_progress")
+}
+
+model SocialPost {
+  id         String   @id @default(uuid())
+  content    String
+  authorId   String   @map("author_id")
+  symbol     String?  // Linked stock/crypto asset symbol
+  likesCount Int      @default(0) @map("likes_count")
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("social_posts")
+}
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String   @map("follower_id")
+  followingId String   @map("following_id")
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  follower    User     @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("user_follows")
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  userId               String    @unique @map("user_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  status               String    // "ACTIVE", "PAST_DUE", "CANCELED", "FREE"
+  planTier             String    @default("FREE") @map("plan_tier") // "FREE", "PRO", "ENTERPRISE"
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  
+  // Relations
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices             Invoice[]
+
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id             String   @id @default(uuid())
+  subscriptionId String   @map("subscription_id")
+  amount         Float
+  pdfUrl         String?  @map("pdf_url")
+  issuedAt       DateTime @default(now()) @map("issued_at")
+  
+  // Relations
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
 }
