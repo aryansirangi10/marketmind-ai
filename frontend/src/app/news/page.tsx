@@ -31,6 +31,7 @@ interface NewsArticle {
   publishedAt: string;
   summary?: string;
   sentimentScore?: number;
+  impactScore?: "HIGH" | "MEDIUM" | "LOW";
 }
 
 export default function NewsHubPage() {
